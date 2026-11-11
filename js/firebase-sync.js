@@ -47,7 +47,12 @@ const FirebaseSync = {
             }
 
             if (!firebase.apps || !firebase.apps.length) {
-                firebase.initializeApp(config);
+                firebase.initializeApp({
+                    apiKey: config.apiKey || "AIzaSyDummyKeyForBlockVoteRTDB",
+                    authDomain: config.authDomain || (config.projectId ? `${config.projectId}.firebaseapp.com` : "blockvote-system.firebaseapp.com"),
+                    databaseURL: config.databaseURL || "https://blockvote-system-default-rtdb.firebaseio.com",
+                    projectId: config.projectId || "blockvote-system"
+                });
             }
             this.db = firebase.database();
             this.isInitialized = true;
