@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — BlockVote</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <i class="fas fa-link"></i>
+            <h4>BlockVote</h4>
+            <p class="text-muted small">Create Your Voter Account</p>
+        </div>
+
+        <div id="alertBox"></div>
+
+        <form id="registerForm">
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-user me-1 text-muted"></i>Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Choose a username" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-envelope me-1 text-muted"></i>Email</label>
+                <input type="email" class="form-control" id="email" placeholder="your@email.com" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-lock me-1 text-muted"></i>Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" placeholder="Min. 6 characters" required>
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-lock me-1 text-muted"></i>Confirm Password</label>
+                <input type="password" class="form-control" id="confirmPassword" placeholder="Repeat password" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label"><i class="fas fa-wallet me-1 text-muted"></i>Wallet Address <small class="text-muted fw-normal">(optional)</small></label>
+                <div class="input-group">
+                    <input type="text" class="form-control text-mono" id="walletAddress" placeholder="0x... or auto-generate">
+                    <button class="btn btn-outline-primary" type="button" id="connectWalletBtn" onclick="handleConnectWallet()">
+                        <i class="fas fa-plug me-1"></i>Connect
+                    </button>
+                </div>
+                <div class="form-text">Connect your MetaMask wallet or we'll generate a test wallet for you.</div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="submitBtn">
+                <i class="fas fa-user-plus me-2"></i>Create Account
+            </button>
+        </form>
+
+        <hr class="my-3">
+        <p class="text-center text-muted small mb-0">
+            Already have an account? <a href="login.html" class="text-primary fw-bold">Sign In</a>
+        </p>
+        <p class="text-center mt-2 mb-0">
+            <a href="index.html" class="text-muted small"><i class="fas fa-arrow-left me-1"></i>Back to Home</a>
+        </p>
+    </div>
+</div>
+
+<!-- Mining Modal for blockchain registration -->
+<div class="mining-overlay" id="miningOverlay" style="display:none;">
+    <div class="mining-box">
+        <div class="mining-spinner"></div>
+        <h5 class="mb-2">Registering on Blockchain</h5>
+        <p class="text-muted small mb-3">Mining your registration block...</p>
+        <div class="mining-hash" id="miningHashDisplay">Computing hash...</div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/firebase-sync.js"></script>
+<script src="js/blockchain.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    const wallet = document.getElementById('walletAddress').value.trim();
+
+    if (password !== confirm) {
+        showAlert('alertBox', 'Passwords do not match.', 'danger');
+        return;
+    }
+
+    const result = AppState.register(username, email, password, wallet || null);
+    if (!result.success) {
+        showAlert('alertBox', result.message, 'danger');
+        return;
+    }
+
+    // Auto-login
+    AppState.login(username, password);
+
+    // Handle wallet
+    let walletAddr = wallet;
+    if (!walletAddr) {
+        walletAddr = AppState.generateWallet(username);
+        AppState.connectWallet(walletAddr);
+        document.getElementById('walletAddress').value = walletAddr;
+    } else {
+        AppState.connectWallet(walletAddr);
+    }
+
+    // Show mining overlay
+    document.getElementById('miningOverlay').style.display = 'flex';
+    animateMiningHash();
+
+    // Mine registration block
+    setTimeout(() => {
+        const regResult = AppState.registerVoterOnChain(walletAddr);
+        document.getElementById('miningOverlay').style.display = 'none';
+
+        showAlert('alertBox',
+            `<i class="fas fa-check-circle me-2"></i><strong>Registration successful!</strong> 
+             Your voter record has been added to the blockchain.
+             ${regResult.txHash ? '<br><small class="text-mono">TX: ' + regResult.txHash.substring(0,32) + '...</small>' : ''}
+             <br>Redirecting to dashboard...`,
+            'success');
+
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 2500);
+    }, 1500);
+});
+
+async function handleConnectWallet() {
+    const btn = document.getElementById('connectWalletBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    try {
+        const addr = await connectWalletGlobal();
+        AppState.connectWallet(addr);
+        document.getElementById('walletAddress').value = addr;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Connected';
+        btn.classList.replace('btn-outline-primary', 'btn-success');
+    } catch(e) {
+        btn.innerHTML = '<i class="fas fa-plug me-1"></i>Connect';
+    }
+    btn.disabled = false;
+}
+
+function animateMiningHash() {
+    const el = document.getElementById('miningHashDisplay');
+    let chars = '0123456789abcdef';
+    const interval = setInterval(() => {
+        let hash = '';
+        for (let i = 0; i < 64; i++) hash += chars[Math.floor(Math.random() * chars.length)];
+        el.textContent = hash;
+    }, 100);
+    setTimeout(() => clearInterval(interval), 2000);
+}
+
+function togglePassword(id) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+}
+</script>
+</body>
+</html>

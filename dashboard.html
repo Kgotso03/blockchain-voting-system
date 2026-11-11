@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — BlockVote</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=3.0">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index.html"><i class="fas fa-link"></i> BlockVote</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item"><span class="cloud-sync-badge"></span></li>
+                <li class="nav-item"><a class="nav-link active" href="dashboard.html"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="vote.html"><i class="fas fa-vote-yea me-1"></i>Vote</a></li>
+                <li class="nav-item"><a class="nav-link" href="results.html"><i class="fas fa-chart-bar me-1"></i>Results</a></li>
+                <li class="nav-item"><a class="nav-link text-warning fw-bold" href="admin.html"><i class="fas fa-cog me-1"></i>Admin</a></li>
+                <li class="nav-item">
+                    <span class="nav-link text-warning" id="walletDisplay"><i class="fas fa-wallet me-1"></i>No Wallet</span>
+                </li>
+                <li class="nav-item">
+                    <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <div class="row g-4">
+        <!-- Left sidebar -->
+        <div class="col-lg-4">
+            <!-- Profile card -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <i class="fas fa-user-circle me-2"></i>Voter Profile
+                </div>
+                <div class="sidebar-card-body text-center">
+                    <div class="user-avatar mx-auto mb-3" id="userAvatar">?</div>
+                    <h5 class="fw-bold mb-0" id="profileUsername">Loading...</h5>
+                    <p class="text-muted small mb-2" id="profileEmail">-</p>
+                    <span class="badge bg-primary" id="profileRole">voter</span>
+                    <hr>
+                    <div class="text-start">
+                        <small class="text-muted">Member since</small>
+                        <div class="fw-semibold small" id="profileDate">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet card -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <i class="fas fa-wallet me-2"></i>Blockchain Wallet
+                </div>
+                <div class="sidebar-card-body">
+                    <div id="walletCard">
+                        <div class="text-center text-muted py-2">No wallet connected</div>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="handleConnectWallet()">
+                        <i class="fas fa-plug me-1"></i>Connect Wallet
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </div>
+                <div class="sidebar-card-body">
+                    <a href="vote.html" class="quick-action-btn">
+                        <i class="fas fa-vote-yea text-success"></i> Cast Your Vote
+                    </a>
+                    <a href="results.html" class="quick-action-btn">
+                        <i class="fas fa-chart-pie text-primary"></i> View Results
+                    </a>
+                    <a href="admin.html" class="quick-action-btn">
+                        <i class="fas fa-user-plus text-primary"></i> Admin: Add Candidates
+                    </a>
+                    <button class="quick-action-btn" onclick="handleConnectWallet()">
+                        <i class="fas fa-wallet text-warning"></i> Reconnect Wallet
+                    </button>
+                    <button class="quick-action-btn" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt text-danger"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right main content -->
+        <div class="col-lg-8">
+            <!-- Election Status -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-flag me-2"></i>Election Status
+                </div>
+                <div class="card-body" id="electionCard">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Voting Status -->
+            <div class="card mb-4">
+                <div class="card-header" id="votingStatusHeader" style="background:var(--primary);color:#fff">
+                    <i class="fas fa-check-square me-2"></i>Your Voting Status
+                </div>
+                <div class="card-body" id="votingStatusBody">
+                    <p class="text-muted">Checking...</p>
+                </div>
+            </div>
+
+            <!-- Top Candidates Preview -->
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-users me-2"></i>Top Candidates
+                </div>
+                <div class="card-body" id="candidatesPreview">
+                    <p class="text-muted">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Recent Blockchain Blocks -->
+            <div class="card">
+                <div class="card-header" style="background:#0d1117;color:#e6edf3;font-family:monospace;">
+                    <i class="fas fa-cube me-2" style="color:var(--green)"></i>Recent Blockchain Blocks
+                </div>
+                <div class="card-body p-0" style="background:#0d1117;border-radius:0 0 12px 12px;">
+                    <div class="p-3 chain-explorer" id="blocksExplorer" style="max-height:350px;">
+                        <p class="text-muted text-center">Loading blocks...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container text-center">
+        <p class="mb-0"><i class="fas fa-link me-2"></i><strong>BlockVote</strong> — Secure Blockchain Voting</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js?v=3.0"></script>
+<script src="js/firebase-sync.js?v=3.0"></script>
+<script src="js/blockchain.js?v=3.0"></script>
+<script src="js/app.js?v=3.0"></script>
+<script>
+let currentUser = null;
+
+function renderAll() {
+    renderProfile();
+    renderWallet();
+    renderElection();
+    renderVotingStatus();
+    renderCandidatesPreview();
+    renderBlocks();
+    updateNavWallet();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    currentUser = requireLogin();
+    if (!currentUser) return;
+    renderAll();
+
+    // Listen to real-time blockchain updates
+    window.addEventListener('blockchainUpdated', renderAll);
+});
+
+function renderProfile() {
+    document.getElementById('profileUsername').textContent = currentUser.username;
+    document.getElementById('profileEmail').textContent = currentUser.email;
+    document.getElementById('profileRole').textContent = currentUser.role;
+    document.getElementById('profileDate').textContent = new Date(currentUser.registeredAt).toLocaleDateString();
+    document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+}
+
+function renderWallet() {
+    const wallet = AppState.getWallet() || currentUser.walletAddress;
+    const isRegistered = wallet ? AppState.isVoterRegistered(wallet) : false;
+    const walletCard = document.getElementById('walletCard');
+    if (wallet) {
+        walletCard.innerHTML = `
+            <div class="wallet-address mb-2">${wallet}</div>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge ${isRegistered ? 'bg-success' : 'bg-warning'}">
+                    <i class="fas fa-${isRegistered ? 'check' : 'clock'} me-1"></i>
+                    ${isRegistered ? 'On-chain Registered' : 'Not Registered On-chain'}
+                </span>
+            </div>
+        `;
+    }
+}
+
+function renderElection() {
+    const election = AppState.getElection();
+    const stats = AppState.getBlockchainStats();
+    document.getElementById('electionCard').innerHTML = `
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h5 class="fw-bold mb-1">${election.title}</h5>
+                <p class="text-muted small mb-2">${election.description}</p>
+                <span class="badge ${election.active ? 'bg-success' : 'bg-secondary'} px-3 py-2">
+                    <i class="fas fa-${election.active ? 'circle' : 'pause-circle'} me-1"></i>
+                    ${election.active ? 'ACTIVE' : 'INACTIVE'}
+                </span>
+            </div>
+            <div class="text-end">
+                <div class="text-muted small">Total Votes</div>
+                <div class="fw-bold fs-4 text-success">${stats.totalVotes}</div>
+                <div class="text-muted small">Blockchain Blocks: ${stats.totalBlocks}</div>
+                <div class="validity-badge ${stats.isValid ? 'validity-valid' : 'validity-invalid'} mt-1">
+                    <i class="fas fa-${stats.isValid ? 'check-circle' : 'times-circle'}"></i>
+                    Chain ${stats.isValid ? 'Valid' : 'INVALID'}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderVotingStatus() {
+    const hasVoted = AppState.hasUserVoted();
+    const wallet = AppState.getWallet() || currentUser.walletAddress;
+    const txBlock = AppState.getUserVoteTransaction();
+    const header = document.getElementById('votingStatusHeader');
+    const body = document.getElementById('votingStatusBody');
+
+    if (hasVoted && txBlock) {
+        header.style.background = 'var(--green)';
+        body.innerHTML = `
+            <div class="vote-success">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="width:50px;height:50px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 text-success fw-bold">You Have Voted!</h5>
+                        <small class="text-muted">Your vote is permanently recorded on the blockchain</small>
+                    </div>
+                </div>
+                <div class="bg-light rounded p-3">
+                    <div class="mb-2"><strong>Candidate:</strong> ${txBlock.data.payload.candidateName} (${txBlock.data.payload.party})</div>
+                    <div class="mb-2"><strong>Block #</strong>${txBlock.index}</div>
+                    <div class="mb-1"><strong>Transaction Hash:</strong></div>
+                    <div class="hash-display d-block mt-1" title="${txBlock.hash}">${txBlock.hash}</div>
+                    <div class="mt-2"><strong>Voted at:</strong> ${new Date(txBlock.timestamp).toLocaleString()}</div>
+                </div>
+            </div>
+        `;
+    } else if (!wallet) {
+        body.innerHTML = `
+            <div class="text-center py-3">
+                <i class="fas fa-wallet fa-3x text-warning mb-3 d-block"></i>
+                <h6>No Wallet Connected</h6>
+                <p class="text-muted small">Connect a wallet to vote</p>
+                <button class="btn btn-warning btn-sm" onclick="handleConnectWallet()">
+                    <i class="fas fa-plug me-1"></i>Connect Wallet
+                </button>
+            </div>
+        `;
+    } else {
+        body.innerHTML = `
+            <div class="text-center py-3">
+                <i class="fas fa-vote-yea fa-3x text-primary mb-3 d-block"></i>
+                <h6>You Haven't Voted Yet</h6>
+                <p class="text-muted small">Cast your vote now to make your voice heard</p>
+                <a href="vote.html" class="btn btn-success btn-sm px-4">
+                    <i class="fas fa-vote-yea me-1"></i>Cast Vote Now
+                </a>
+            </div>
+        `;
+    }
+}
+
+function renderCandidatesPreview() {
+    const results = AppState.getResults().slice(0, 4);
+    document.getElementById('candidatesPreview').innerHTML = results.map((r, i) => {
+        const photoHtml = r.candidate.image
+            ? `<img src="${r.candidate.image}" class="candidate-photo-sm" alt="${r.candidate.name}">`
+            : `<div style="width:40px;height:40px;border-radius:50%;background:${r.candidate.color};display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;"><i class="fas ${r.candidate.icon}"></i></div>`;
+
+        return `
+        <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded bg-light">
+            ${photoHtml}
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong>${r.candidate.name}</strong>
+                    <span class="text-muted small">${r.votes} votes (${r.percentage}%)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="category-badge">${r.candidate.category || 'General'}</span>
+                    <span class="party-badge py-0 px-2" style="background:${r.candidate.color}22;color:${r.candidate.color};border:1px solid ${r.candidate.color}44;font-size:0.75rem;">
+                        ${r.candidate.party || 'Independent'}
+                    </span>
+                </div>
+                <div class="progress mt-2" style="height:5px;">
+                    <div class="progress-bar" style="width:${r.percentage}%;background:${r.candidate.color};"></div>
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('') + `<div class="text-center mt-2"><a href="results.html" class="btn btn-outline-primary btn-sm">View Full Standings</a></div>`;
+}
+
+function renderBlocks() {
+    const blocks = AppState.getRecentBlocks(5);
+    document.getElementById('blocksExplorer').innerHTML = blocks.map(block => `
+        <div class="block-card ${block.index === 0 ? 'genesis' : ''} mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="block-index">Block #${block.index}</span>
+                <span class="block-type type-${getBlockTypeClass(block.data.type)}">${block.data.type.replace(/_/g,' ')}</span>
+                <small class="text-muted">${new Date(block.timestamp).toLocaleTimeString()}</small>
+            </div>
+            <div class="mb-1"><small style="color:#8b949e">Hash: </small><span class="block-hash">${block.hash.substring(0,40)}...</span></div>
+            <div><small style="color:#8b949e">Prev: </small><span class="block-prev-hash">${block.previousHash.substring(0,30)}...</span></div>
+            ${block.data.type === 'VOTE' ? `<div class="mt-1"><small style="color:#8b949e">Voted for: </small><span style="color:#f39c12">${block.data.payload.candidateName}</span></div>` : ''}
+        </div>
+    `).join('');
+}
+
+function getBlockTypeClass(type) {
+    const map = { 'VOTE': 'vote', 'GENESIS': 'genesis', 'REGISTER_VOTER': 'register', 'ADD_CANDIDATE': 'candidate' };
+    return map[type] || 'genesis';
+}
+
+function updateNavWallet() {
+    const wallet = AppState.getWallet() || currentUser.walletAddress;
+    const el = document.getElementById('walletDisplay');
+    if (wallet) {
+        el.textContent = wallet.substring(0, 10) + '...';
+        el.className = 'nav-link text-success';
+    }
+}
+
+async function handleConnectWallet() {
+    const addr = await connectWalletGlobal();
+    AppState.connectWallet(addr);
+    renderWallet();
+    updateNavWallet();
+    showToast('Wallet connected successfully!');
+    // Register on chain if not yet registered
+    if (!AppState.isVoterRegistered(addr)) {
+        AppState.registerVoterOnChain(addr);
+        renderBlocks();
+    }
+}
+
+function handleLogout() {
+    AppState.logout();
+    window.location.href = 'index.html';
+}
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed bottom-0 end-0 m-3 alert alert-success alert-dismissible fade show';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+</script>
+</body>
+</html>

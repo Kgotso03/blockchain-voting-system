@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Results — BlockVote</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=3.0">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index.html"><i class="fas fa-link"></i> BlockVote</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item"><a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link active" href="results.html"><i class="fas fa-chart-bar me-1"></i>Results</a></li>
+                <li class="nav-item"><a class="nav-link text-warning fw-bold" href="admin.html"><i class="fas fa-cog me-1"></i>Admin</a></li>
+                <li id="navDashboard" class="nav-item" style="display:none;">
+                    <a class="nav-link" href="dashboard.html"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Header -->
+<div style="background:linear-gradient(135deg,#0d1117,#1a252f);padding:3rem 0;color:#fff;" class="text-center">
+    <h1 class="fw-bold"><i class="fas fa-chart-bar me-3" style="color:var(--blue)"></i>Live Election Results</h1>
+    <p class="text-muted mb-0">Real-time results secured on the blockchain</p>
+    <div class="mt-2 d-flex justify-content-center align-items-center gap-3 flex-wrap">
+        <span class="validity-badge" id="chainValidBadge">...</span>
+        <span class="cloud-sync-badge"></span>
+        <small class="text-muted">Last updated: <span id="lastUpdated">-</span></small>
+    </div>
+</div>
+
+<div class="container my-4">
+    <!-- Stats row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-value text-primary" id="totalVotesStat">0</div>
+                <div class="stat-label">Total Votes</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-value text-info" id="totalCandidatesStat">0</div>
+                <div class="stat-label">Candidates</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-value text-success" id="totalBlocksStat">0</div>
+                <div class="stat-label">Blockchain Blocks</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card">
+                <div class="stat-value text-warning" id="electionStatusStat">-</div>
+                <div class="stat-label">Election Status</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category filter buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-filter me-2 text-primary"></i>Filter by Category:
+        </h5>
+        <div class="btn-group btn-group-sm" id="resultsCategoryPills">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white fw-semibold">
+                    <i class="fas fa-chart-bar me-2"></i>Vote Count by Candidate
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="barChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header bg-dark text-white fw-semibold">
+                    <i class="fas fa-chart-pie me-2"></i>Vote Distribution
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="doughnutChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results table -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white fw-semibold">
+            <i class="fas fa-trophy me-2"></i>Detailed Standings
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Candidate</th>
+                            <th>Category</th>
+                            <th>Party</th>
+                            <th>Votes</th>
+                            <th>Share</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <tr><td colspan="6" class="text-center text-muted py-4">Loading results...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blockchain Verification -->
+    <div class="card mb-4">
+        <div class="card-header" style="background:var(--primary);color:#fff;font-weight:600;">
+            <i class="fas fa-shield-alt me-2"></i>Blockchain Verification
+        </div>
+        <div class="card-body">
+            <div class="row g-3" id="verificationPanel">
+                <p class="text-muted">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blockchain Explorer -->
+    <div class="card">
+        <div class="card-header" style="background:#0d1117;color:#e6edf3;font-family:monospace;font-weight:600;">
+            <i class="fas fa-search me-2" style="color:var(--green)"></i>Blockchain Explorer
+            <span class="badge bg-success ms-2 float-end" id="explorerBlockCount">0 blocks</span>
+        </div>
+        <div class="card-body p-0" style="background:#0d1117;border-radius:0 0 12px 12px;">
+            <div class="p-3 chain-explorer" id="chainExplorer"></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container text-center">
+        <p class="mb-0"><i class="fas fa-sync-alt me-2"></i>Auto-refreshes every <strong>10 seconds</strong></p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js?v=3.0"></script>
+<script src="js/firebase-sync.js?v=3.0"></script>
+<script src="js/blockchain.js?v=6.0"></script>
+<script src="js/app.js?v=6.0"></script>
+<script>
+let barChart = null, doughnutChart = null;
+let selectedResultCategory = 'All';
+
+document.addEventListener('DOMContentLoaded', () => {
+    const user = AppState.getCurrentUser();
+    if (user) document.getElementById('navDashboard').style.display = '';
+
+    initCharts();
+    updateAll();
+    setInterval(updateAll, 10000);
+
+    // Realtime update when someone votes anywhere in the world
+    window.addEventListener('blockchainUpdated', updateAll);
+    window.addEventListener('candidatesUpdated', updateAll);
+});
+
+function filterResultCategory(cat) {
+    selectedResultCategory = cat;
+    updateAll();
+}
+
+function updateCategoryPills() {
+    const categories = AppState.getCategories();
+    const container = document.getElementById('resultsCategoryPills');
+    if (!container) return;
+
+    container.innerHTML = `
+        <button class="btn btn-outline-primary ${selectedResultCategory === 'All' ? 'active' : ''}" onclick="filterResultCategory('All')">
+            All Positions
+        </button>
+        ${categories.map(cat => `
+            <button class="btn btn-outline-primary ${selectedResultCategory === cat ? 'active' : ''}" onclick="filterResultCategory('${cat}')">
+                ${cat}
+            </button>
+        `).join('')}
+    `;
+}
+
+function updateAll() {
+    updateCategoryPills();
+    updateStats();
+    updateCharts();
+    updateTable();
+    updateVerification();
+    updateChainExplorer();
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+}
+
+function updateStats() {
+    const stats = AppState.getBlockchainStats();
+    const election = AppState.getElection();
+    const candidates = AppState.getCandidates();
+
+    document.getElementById('totalVotesStat').textContent = stats.totalVotes;
+    document.getElementById('totalCandidatesStat').textContent = candidates.length;
+    document.getElementById('totalBlocksStat').textContent = stats.totalBlocks;
+    document.getElementById('electionStatusStat').innerHTML = election.active
+        ? '<span style="color:var(--green);font-size:1.5rem"><i class="fas fa-circle"></i></span>'
+        : '<span style="color:#6c757d;font-size:1.5rem"><i class="fas fa-pause-circle"></i></span>';
+
+    const badge = document.getElementById('chainValidBadge');
+    if (stats.isValid) {
+        badge.className = 'validity-badge validity-valid';
+        badge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Chain Valid';
+    } else {
+        badge.className = 'validity-badge validity-invalid';
+        badge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Chain INVALID';
+    }
+}
+
+function initCharts() {
+    const ctxBar = document.getElementById('barChart').getContext('2d');
+    barChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Votes', data: [], backgroundColor: [], borderColor: [], borderWidth: 2, borderRadius: 8 }] },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} votes` } } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+    doughnutChart = new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 3, borderColor: '#fff' }] },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 15, font: { size: 11 } } },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} votes (${ctx.dataset.data.reduce((a,b) => a+b, 0) > 0 ? ((ctx.raw / ctx.dataset.data.reduce((a,b) => a+b, 0)) * 100).toFixed(1) : 0}%)` } }
+            },
+            cutout: '65%'
+        }
+    });
+}
+
+function updateCharts() {
+    const results = AppState.getResults(selectedResultCategory);
+    const labels = results.map(r => r.candidate.name);
+    const data = results.map(r => r.votes);
+    const colors = results.map(r => r.candidate.color);
+
+    barChart.data.labels = labels;
+    barChart.data.datasets[0].data = data;
+    barChart.data.datasets[0].backgroundColor = colors.map(c => c + '99');
+    barChart.data.datasets[0].borderColor = colors;
+    barChart.update();
+
+    doughnutChart.data.labels = labels;
+    doughnutChart.data.datasets[0].data = data;
+    doughnutChart.data.datasets[0].backgroundColor = colors;
+    doughnutChart.update();
+}
+
+function updateTable() {
+    const results = AppState.getResults(selectedResultCategory);
+    const tbody = document.getElementById('resultsTableBody');
+    if (results.every(r => r.votes === 0)) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-vote-yea me-2"></i>No votes cast yet in this category. Be the first to vote!</td></tr>';
+        return;
+    }
+    tbody.innerHTML = results.map((r, i) => {
+        const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+        const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+        const photoHtml = r.candidate.image
+            ? `<img src="${r.candidate.image}" class="candidate-photo-sm" alt="${r.candidate.name}">`
+            : `<div style="width:36px;height:36px;border-radius:50%;background:${r.candidate.color};display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;"><i class="fas ${r.candidate.icon} fa-sm"></i></div>`;
+
+        return `
+        <tr>
+            <td><span class="result-rank ${rankClass}">${rankIcon}</span></td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    ${photoHtml}
+                    <strong>${r.candidate.name}</strong>
+                </div>
+            </td>
+            <td><span class="category-badge">${r.candidate.category || 'General'}</span></td>
+            <td><span class="party-badge" style="background:${r.candidate.color}22;color:${r.candidate.color};border:1px solid ${r.candidate.color}44;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.8rem">${r.candidate.party || 'Independent'}</span></td>
+            <td class="fw-bold">${r.votes}</td>
+            <td>${r.percentage}%</td>
+            <td style="min-width:150px;">
+                <div class="progress" style="height:8px;border-radius:4px;">
+                    <div class="progress-bar" style="width:${r.percentage}%;background:${r.candidate.color};border-radius:4px;transition:width 1s ease;"></div>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function updateVerification() {
+    const stats = AppState.getBlockchainStats();
+    document.getElementById('verificationPanel').innerHTML = `
+        <div class="col-md-3 col-6">
+            <div class="text-center p-3 bg-light rounded">
+                <div class="fw-bold fs-4">${stats.totalBlocks}</div>
+                <small class="text-muted">Blocks Mined</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="text-center p-3 bg-light rounded">
+                <div class="fw-bold fs-4">${stats.totalVotes}</div>
+                <small class="text-muted">Votes on Chain</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="text-center p-3 bg-light rounded">
+                <div class="fw-bold fs-4">${stats.difficulty}</div>
+                <small class="text-muted">Mining Difficulty</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="text-center p-3 rounded ${stats.isValid ? 'bg-success bg-opacity-10' : 'bg-danger bg-opacity-10'}">
+                <div class="fw-bold fs-4 ${stats.isValid ? 'text-success' : 'text-danger'}">
+                    <i class="fas fa-${stats.isValid ? 'check-circle' : 'times-circle'}"></i>
+                </div>
+                <small class="${stats.isValid ? 'text-success' : 'text-danger'} fw-semibold">${stats.isValid ? 'VALID' : 'INVALID'}</small>
+            </div>
+        </div>
+    `;
+}
+
+function updateChainExplorer() {
+    const blocks = AppState.getAllBlocks();
+    document.getElementById('explorerBlockCount').textContent = blocks.length + ' blocks';
+    document.getElementById('chainExplorer').innerHTML = blocks.map(block => `
+        <div class="block-card ${block.index === 0 ? 'genesis' : ''} mb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-1">
+                <span class="block-index">Block #${block.index}</span>
+                <span class="block-type type-${getBlockTypeClass(block.data.type)}">${block.data.type.replace(/_/g,' ')}</span>
+                <small class="text-muted">${new Date(block.timestamp).toLocaleString()}</small>
+                <span class="nonce-display">nonce: ${block.nonce}</span>
+            </div>
+            <div class="mb-1">
+                <span style="color:#8b949e">Hash: </span>
+                <span class="block-hash" title="${block.hash}">${block.hash}</span>
+            </div>
+            <div class="mb-1">
+                <span style="color:#8b949e">Prev: </span>
+                <span class="block-prev-hash" title="${block.previousHash}">${block.previousHash}</span>
+            </div>
+            ${renderBlockData(block)}
+        </div>
+    `).join('');
+}
+
+function renderBlockData(block) {
+    const p = block.data.payload;
+    if (block.data.type === 'VOTE') {
+        return `<div class="mt-1"><span style="color:#8b949e">Vote: </span><span style="color:#f39c12">${p.candidateName} (${p.party})</span> <span style="color:#8b949e">from</span> <span style="color:#9b59b6">${p.voterWallet ? p.voterWallet.substring(0,20) + '...' : ''}</span></div>`;
+    }
+    if (block.data.type === 'REGISTER_VOTER') {
+        return `<div class="mt-1"><span style="color:#8b949e">Wallet: </span><span style="color:#9b59b6">${p.walletAddress ? p.walletAddress.substring(0,30) + '...' : ''}</span></div>`;
+    }
+    if (block.data.type === 'GENESIS') {
+        return `<div class="mt-1"><span style="color:#8b949e">Message: </span><span style="color:#3498db">${p.message}</span></div>`;
+    }
+    return '';
+}
+
+function getBlockTypeClass(type) {
+    const map = { 'VOTE': 'vote', 'GENESIS': 'genesis', 'REGISTER_VOTER': 'register', 'ADD_CANDIDATE': 'candidate' };
+    return map[type] || 'genesis';
+}
+</script>
+</body>
+</html>

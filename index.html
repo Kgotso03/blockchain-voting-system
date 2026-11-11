@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Voting System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=3.0">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">
+            <i class="fas fa-link"></i> BlockVote
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item"><a class="nav-link active" href="index.html"><i class="fas fa-home me-1"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="results.html"><i class="fas fa-chart-bar me-1"></i>Results</a></li>
+                <li class="nav-item"><a class="nav-link" href="register.html"><i class="fas fa-user-plus me-1"></i>Register</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="login.html">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-warning fw-bold" href="admin.html">
+                        <i class="fas fa-cog me-1"></i>Admin
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <button class="btn btn-outline-info btn-sm" id="connectWalletBtn" onclick="handleConnectWallet()">
+                        <i class="fas fa-wallet me-1"></i><span id="walletBtnText">Connect Wallet</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container text-center position-relative">
+        <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+            <div class="hero-badge m-0"><i class="fas fa-shield-alt me-1"></i>Blockchain Secured</div>
+            <span class="cloud-sync-badge"></span>
+        </div>
+        <h1>Secure Blockchain Voting</h1>
+        <p class="lead mb-4">Experience the future of democracy. Every vote is immutably recorded on a decentralized blockchain — transparent, tamper-proof, and verifiable.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="register.html" class="btn btn-primary btn-lg px-4 fw-bold">
+                <i class="fas fa-user-plus me-2"></i>Register to Vote
+            </a>
+            <a href="results.html" class="btn btn-outline-light btn-lg px-4">
+                <i class="fas fa-chart-bar me-2"></i>Live Results
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <a href="register.html" class="feature-card card-hover">
+                    <div class="feature-icon bg-primary bg-opacity-10">
+                        <i class="fas fa-user-plus text-primary fa-lg"></i>
+                    </div>
+                    <h5 class="fw-bold">Register as Voter</h5>
+                    <p class="text-muted mb-0">Create your account and connect your blockchain wallet to get started.</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="vote.html" class="feature-card card-hover">
+                    <div class="feature-icon bg-success bg-opacity-10">
+                        <i class="fas fa-vote-yea text-success fa-lg"></i>
+                    </div>
+                    <h5 class="fw-bold">Cast Your Vote</h5>
+                    <p class="text-muted mb-0">Your vote is mined as a block with proof-of-work and secured forever.</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="results.html" class="feature-card card-hover">
+                    <div class="feature-icon bg-info bg-opacity-10">
+                        <i class="fas fa-chart-pie text-info fa-lg"></i>
+                    </div>
+                    <h5 class="fw-bold">View Live Results</h5>
+                    <p class="text-muted mb-0">Track real-time results with charts and explore the full blockchain.</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Four simple steps powered by blockchain technology</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <i class="fas fa-user-check fa-2x text-primary mb-2"></i>
+                    <h6 class="fw-bold">Register</h6>
+                    <p class="text-muted small">Create an account with your credentials and connect your wallet.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <i class="fas fa-wallet fa-2x text-warning mb-2"></i>
+                    <h6 class="fw-bold">Connect Wallet</h6>
+                    <p class="text-muted small">Link your Ethereum wallet or use a simulated test wallet.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <i class="fas fa-vote-yea fa-2x text-success mb-2"></i>
+                    <h6 class="fw-bold">Vote</h6>
+                    <p class="text-muted small">Select your candidate. Your vote is mined into the blockchain.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <i class="fas fa-search fa-2x text-info mb-2"></i>
+                    <h6 class="fw-bold">Verify</h6>
+                    <p class="text-muted small">Verify your transaction hash and explore the blockchain.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Live Stats -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="section-title">Live Blockchain Stats</h2>
+            <p class="section-subtitle">Real-time data from the blockchain</p>
+        </div>
+        <div class="row g-4" id="statsRow">
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-value text-primary" id="statBlocks">-</div>
+                    <div class="stat-label"><i class="fas fa-cube me-1"></i>Total Blocks</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-value text-success" id="statVotes">-</div>
+                    <div class="stat-label"><i class="fas fa-vote-yea me-1"></i>Votes Cast</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div class="stat-value text-info" id="statCandidates">-</div>
+                    <div class="stat-label"><i class="fas fa-users me-1"></i>Candidates</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card">
+                    <div id="statValidity" class="stat-value">-</div>
+                    <div class="stat-label"><i class="fas fa-shield-alt me-1"></i>Chain Status</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Blocks Preview -->
+        <div class="mt-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-boxes me-2"></i>Recent Blocks</h5>
+            <div class="row g-3" id="recentBlocksRow"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container text-center">
+        <p class="mb-1"><i class="fas fa-link me-2"></i><strong>BlockVote</strong> — Blockchain Voting System</p>
+        <p class="mb-0 small">Every vote secured by SHA-256 proof-of-work consensus. <span class="text-success">Open & Transparent.</span></p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js?v=3.0"></script>
+<script src="js/firebase-sync.js?v=3.0"></script>
+<script src="js/blockchain.js?v=3.0"></script>
+<script src="js/app.js?v=3.0"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    loadRecentBlocks();
+    updateWalletButton();
+
+    // Check if user is logged in - update nav
+    const user = AppState.getCurrentUser();
+    if (user) {
+        const loginLink = document.querySelector('a[href="login.html"]');
+        if (loginLink) {
+            loginLink.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+            loginLink.innerHTML = `<i class="fas fa-tachometer-alt me-1"></i>Dashboard`;
+        }
+    }
+
+    // Auto-refresh stats
+    setInterval(() => { loadStats(); loadRecentBlocks(); }, 10000);
+
+    // Realtime update when someone votes anywhere
+    window.addEventListener('blockchainUpdated', () => {
+        loadStats();
+        loadRecentBlocks();
+    });
+});
+
+function loadStats() {
+    const stats = AppState.getBlockchainStats();
+    document.getElementById('statBlocks').textContent = stats.totalBlocks;
+    document.getElementById('statVotes').textContent = stats.totalVotes;
+    document.getElementById('statCandidates').textContent = AppState.getCandidates().length;
+    const validEl = document.getElementById('statValidity');
+    if (stats.isValid) {
+        validEl.innerHTML = '<span style="color:var(--green);font-size:1.5rem"><i class="fas fa-check-circle"></i></span>';
+    } else {
+        validEl.innerHTML = '<span style="color:var(--red);font-size:1.5rem"><i class="fas fa-times-circle"></i></span>';
+    }
+}
+
+function loadRecentBlocks() {
+    const blocks = AppState.getRecentBlocks(3);
+    const container = document.getElementById('recentBlocksRow');
+    container.innerHTML = blocks.map(block => `
+        <div class="col-md-4">
+            <div class="block-card ${block.index === 0 ? 'genesis' : ''}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="block-index">Block #${block.index}</span>
+                    <span class="block-type type-${block.data.type.toLowerCase().replace('_voter','').replace('add_candidate','candidate')}">${block.data.type.replace('_',' ')}</span>
+                </div>
+                <div class="mb-1"><small class="text-muted">Hash:</small><br>
+                    <span class="block-hash" title="${block.hash}">${block.hash.substring(0,32)}...</span>
+                </div>
+                <div class="mb-1"><small class="text-muted">Prev:</small><br>
+                    <span class="block-prev-hash" title="${block.previousHash}">${block.previousHash.substring(0,24)}...</span>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-muted">${new Date(block.timestamp).toLocaleTimeString()}</small>
+                    <small class="nonce-display">nonce: ${block.nonce}</small>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateWalletButton() {
+    const wallet = AppState.getWallet();
+    if (wallet) {
+        document.getElementById('walletBtnText').textContent = wallet.substring(0,10) + '...';
+        document.getElementById('connectWalletBtn').classList.replace('btn-outline-info','btn-info');
+    }
+}
+
+async function handleConnectWallet() {
+    const addr = await connectWalletGlobal();
+    AppState.connectWallet(addr);
+    updateWalletButton();
+    showToast('Wallet connected: ' + addr.substring(0,16) + '...');
+}
+
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed bottom-0 end-0 m-3 alert alert-success alert-dismissible fade show';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+</script>
+</body>
+</html>

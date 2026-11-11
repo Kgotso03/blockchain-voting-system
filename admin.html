@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — BlockVote</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=3.0">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="index.html"><i class="fas fa-link"></i> BlockVote <span class="badge bg-danger ms-1">ADMIN</span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item"><a class="nav-link" href="results.html"><i class="fas fa-chart-bar me-1"></i>Results</a></li>
+                <li class="nav-item">
+                    <button class="btn btn-outline-danger btn-sm" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold mb-0"><i class="fas fa-cog me-2 text-primary"></i>Admin Control Panel</h3>
+            <p class="text-muted small mb-0">Manage the election, candidates, voters, and blockchain</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-primary btn-sm fw-bold shadow-sm" onclick="switchTab('candidatesTab'); setTimeout(() => { const el = document.getElementById('candidateName'); if (el) el.focus(); }, 150);">
+                <i class="fas fa-plus-circle me-1"></i>+ Add Candidate
+            </button>
+            <span class="cloud-sync-badge"></span>
+            <span class="validity-badge" id="chainValidBadge">...</span>
+        </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="stat-card" style="border-left:4px solid var(--orange);cursor:pointer;" onclick="switchTab('candidatesTab')" title="Manage & Add Candidates">
+                <div class="stat-value text-warning" id="statCandidates">0</div>
+                <div class="stat-label"><i class="fas fa-id-card me-1"></i>Candidates & Categories</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card" style="border-left:4px solid var(--blue);cursor:pointer;" onclick="switchTab('votersTab')" title="View Voters">
+                <div class="stat-value text-primary" id="statVoters">0</div>
+                <div class="stat-label"><i class="fas fa-users me-1"></i>Total Voters</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card" style="border-left:4px solid var(--green)">
+                <div class="stat-value text-success" id="statVotes">0</div>
+                <div class="stat-label"><i class="fas fa-vote-yea me-1"></i>Votes Cast</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card" style="border-left:4px solid var(--purple);cursor:pointer;" onclick="switchTab('blockchainTab')" title="Explore Blockchain">
+                <div class="stat-value text-purple" id="statBlocks" style="color:var(--purple)">0</div>
+                <div class="stat-label"><i class="fas fa-cube me-1"></i>Blockchain Blocks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs border-0" id="adminTabs">
+                <li class="nav-item">
+                    <button class="nav-link active px-4 py-3" data-bs-toggle="tab" data-bs-target="#candidatesTab" id="candidatesTabBtn">
+                        <i class="fas fa-id-card me-2"></i>Candidates & Categories
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link px-4 py-3" data-bs-toggle="tab" data-bs-target="#votersTab">
+                        <i class="fas fa-users me-2"></i>Voters
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link px-4 py-3" data-bs-toggle="tab" data-bs-target="#blockchainTab">
+                        <i class="fas fa-cube me-2"></i>Blockchain Explorer
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link px-4 py-3" data-bs-toggle="tab" data-bs-target="#settingsTab">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content admin-tab-content">
+            <!-- Candidates Tab (Active First Tab) -->
+            <div class="tab-pane fade show active p-4" id="candidatesTab">
+                <div class="row g-4">
+                    <div class="col-md-5">
+                        <div class="card border">
+                            <div class="card-header bg-light fw-semibold">
+                                <i class="fas fa-plus-circle me-2 text-primary"></i>Add New Candidate
+                            </div>
+                            <div class="card-body">
+                                <div id="candidateAlertBox"></div>
+                                <form id="addCandidateForm">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Candidate Name *</label>
+                                        <input type="text" class="form-control" id="candidateName" placeholder="Full name" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label class="form-label fw-bold small mb-0">Category / Position *</label>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold small" onclick="toggleNewCategoryBox(true)">
+                                                <i class="fas fa-plus-circle me-1"></i>+ Add New Category
+                                            </button>
+                                        </div>
+
+                                        <!-- Category Selector dropdown with New button -->
+                                        <div class="input-group">
+                                            <select class="form-select" id="candidateCategorySelect" onchange="handleCategorySelectChange(this.value)" required>
+                                                <!-- Dynamic categories -->
+                                            </select>
+                                            <button class="btn btn-outline-primary" type="button" onclick="toggleNewCategoryBox(true)" title="Add a new category if not in list">
+                                                <i class="fas fa-plus me-1"></i>New
+                                            </button>
+                                        </div>
+                                        <input type="hidden" id="candidateCategory" value="">
+
+                                        <!-- Inline New Category Box (appears when needed) -->
+                                        <div id="newCategoryInlineBox" class="mt-2 p-3 border rounded bg-white shadow-sm" style="display:none; border-left: 4px solid var(--blue)!important;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <label class="form-label small fw-bold text-primary mb-0">
+                                                    <i class="fas fa-layer-group me-1"></i>Create New Category / Office
+                                                </label>
+                                                <button type="button" class="btn-close btn-sm" onclick="toggleNewCategoryBox(false)"></button>
+                                            </div>
+                                            <p class="text-muted small mb-2" style="font-size:0.75rem;">If the category running for isn't in the list, type it here to add it permanently:</p>
+                                            <div class="input-group input-group-sm mb-1">
+                                                <input type="text" class="form-control" id="newCategoryInput" placeholder="e.g. Mayor, SRC President, Secretary General, Treasurer" onkeydown="if(event.key==='Enter'){event.preventDefault();saveNewCategory();}">
+                                                <button class="btn btn-primary fw-bold" type="button" onclick="saveNewCategory()">
+                                                    <i class="fas fa-check me-1"></i>Save & Select
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Quick pick badges -->
+                                        <div class="d-flex gap-1 flex-wrap mt-2 align-items-center" id="categoryQuickBadges">
+                                            <!-- Dynamically populated -->
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Political Party (if any)</label>
+                                        <input type="text" class="form-control" id="candidateParty" placeholder="e.g. Democratic, Republican, or Independent">
+                                        <div class="form-text">Leave blank or enter 'Independent' if no party affiliation.</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Candidate Picture / Photo</label>
+                                        <input type="file" class="form-control mb-1" id="candidateImageFile" accept="image/*" onchange="handleImageFileUpload(event)">
+                                        <div class="text-center text-muted small my-1">OR</div>
+                                        <input type="url" class="form-control form-control-sm" id="candidateImageUrl" placeholder="Paste image web URL (https://...)" oninput="handleImageUrlInput(this.value)">
+                                        
+                                        <div id="imagePreviewBox" class="text-center my-2 p-2 border rounded bg-light" style="display:none;">
+                                            <img id="candidateImagePreview" class="candidate-photo" src="" alt="Preview">
+                                            <div class="mt-1">
+                                                <button type="button" class="btn btn-outline-danger btn-sm py-0" onclick="clearCandidateImage()">
+                                                    <i class="fas fa-times me-1"></i>Remove Photo
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small">Bio / Platform Description</label>
+                                        <textarea class="form-control" id="candidateDescription" rows="2" placeholder="Brief bio or campaign goals..."></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                                        <i class="fas fa-plus me-2"></i>Add Candidate & Mine Block
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <div>
+                                <h5 class="fw-bold mb-0">Candidates by Category</h5>
+                                <small class="text-muted" id="categoryCountSummary">Configured categories</small>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center flex-wrap">
+                                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#categoryManagerModal" onclick="renderModalCategoryList()">
+                                    <i class="fas fa-tags me-1"></i>Manage Categories
+                                </button>
+                                <div class="btn-group btn-group-sm" id="candidateCategoryFilterGroup">
+                                    <!-- Filter pills populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                        <div id="candidatesList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voters Tab -->
+            <div class="tab-pane fade p-4" id="votersTab">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-users me-2"></i>Registered Voters</h5>
+                    <span class="badge bg-primary" id="voterCountBadge">0</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Wallet Address</th>
+                                <th>On-Chain</th>
+                                <th>Voted</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody id="votersTableBody">
+                            <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Blockchain Explorer Tab -->
+            <div class="tab-pane fade" id="blockchainTab">
+                <div class="p-0" style="background:#0d1117;border-radius:0 0 12px 12px;">
+                    <div class="p-3 d-flex justify-content-between align-items-center border-bottom" style="border-color:#30363d!important">
+                        <span style="color:#e6edf3;font-family:monospace;font-size:0.9rem;">
+                            <i class="fas fa-terminal me-2" style="color:var(--green)"></i>BLOCKCHAIN EXPLORER
+                        </span>
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="badge bg-success" id="explorerBadge">0 blocks</span>
+                            <button class="btn btn-outline-success btn-sm text-mono" onclick="downloadChain()">
+                                <i class="fas fa-download me-1"></i>Export JSON
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chain-explorer p-3" id="adminChainExplorer" style="max-height:600px;"></div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-pane fade p-4" id="settingsTab">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-header bg-light fw-semibold">
+                                <i class="fas fa-flag me-2 text-primary"></i>Election Control
+                            </div>
+                            <div class="card-body" id="electionSettings">
+                                <p class="text-muted">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border">
+                            <div class="card-header bg-light fw-semibold">
+                                <i class="fas fa-info-circle me-2 text-info"></i>System Information
+                            </div>
+                            <div class="card-body" id="sysInfo">
+                                <p class="text-muted">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border border-primary">
+                            <div class="card-header bg-primary text-white fw-semibold d-flex justify-content-between align-items-center">
+                                <div><i class="fas fa-satellite-dish me-2"></i>Global Multi-User Cloud Sync (Firebase)</div>
+                                <span class="cloud-sync-badge"></span>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Connect a free Firebase Realtime Database to allow <strong>everyone on Vercel or any device</strong> to cast votes into a single shared blockchain in real time!
+                                </p>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Firebase Realtime Database URL *</label>
+                                        <input type="text" id="fbDbUrl" class="form-control form-control-sm" placeholder="https://your-project-default-rtdb.firebaseio.com">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Project ID</label>
+                                        <input type="text" id="fbProjectId" class="form-control form-control-sm" placeholder="your-project-id">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">API Key (Optional)</label>
+                                        <input type="text" id="fbApiKey" class="form-control form-control-sm" placeholder="AIzaSy...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Auth Domain (Optional)</label>
+                                        <input type="text" id="fbAuthDomain" class="form-control form-control-sm" placeholder="your-project.firebaseapp.com">
+                                    </div>
+                                    <div class="col-12">
+                                        <button class="btn btn-primary btn-sm me-2" onclick="saveCloudConfig()">
+                                            <i class="fas fa-plug me-1"></i>Save & Connect Cloud
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="clearCloudConfig()">
+                                            <i class="fas fa-unlink me-1"></i>Disconnect / Revert to Local
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info py-2 px-3 mt-3 mb-0 small">
+                                    <i class="fas fa-lightbulb me-1"></i><strong>How to get free Firebase in 2 mins:</strong><br>
+                                    1. Go to <a href="https://console.firebase.google.com" target="_blank" class="fw-bold">console.firebase.google.com</a> → Click <em>Add project</em>.<br>
+                                    2. In left menu: <em>Build → Realtime Database → Create Database → Start in test mode</em>.<br>
+                                    3. Copy the database URL (e.g. <code>https://xxx-default-rtdb.firebaseio.com</code>) into the field above and click <strong>Save & Connect</strong>!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border border-danger">
+                            <div class="card-header bg-danger text-white fw-semibold">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted">Reset all data and start fresh. This cannot be undone!</p>
+                                <button class="btn btn-outline-danger" onclick="confirmReset()">
+                                    <i class="fas fa-trash me-2"></i>Reset All Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Manager Modal -->
+<div class="modal fade" id="categoryManagerModal" tabindex="-1" aria-labelledby="catModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="catModalLabel">
+                    <i class="fas fa-tags me-2 text-primary"></i>Election Categories & Offices
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">
+                    Every category is a distinct position/ballot (e.g. President, Mayor, Secretary). If the category running for is not here, you can add it below:
+                </p>
+
+                <!-- Add new category form inside modal -->
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body p-3">
+                        <label class="form-label fw-bold small"><i class="fas fa-plus-circle me-1 text-primary"></i>Add New Category</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="modalCategoryInput" placeholder="e.g. Mayor, SRC President, Treasurer" onkeydown="if(event.key==='Enter'){event.preventDefault();saveNewCategoryFromModal();}">
+                            <button class="btn btn-primary fw-bold" type="button" onclick="saveNewCategoryFromModal()">
+                                <i class="fas fa-plus me-1"></i>Add Category
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-2 small text-uppercase text-muted">Configured Categories</h6>
+                <div id="modalCategoryList" class="list-group list-group-flush border rounded">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="js/firebase-config.js?v=6.0"></script>
+<script src="js/firebase-sync.js?v=6.0"></script>
+<script src="js/blockchain.js?v=6.0"></script>
+<script src="js/app.js?v=6.0"></script>
+<script>
+let adminUser = null;
+let currentCandidateImage = '';
+let selectedCategoryFilter = 'All';
+
+// ---- Utility: showAlert ----
+function showAlert(containerId, message, type = 'danger') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+}
+
+function switchTab(tabId) {
+    const btn = document.querySelector(`button[data-bs-target="#${tabId}"]`);
+    if (btn) {
+        bootstrap.Tab.getOrCreateInstance(btn).show();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Ensure admin session is always active on admin page
+    let cur = AppState.getCurrentUser();
+    if (!cur || (cur.role !== 'admin' && cur.username !== 'admin')) {
+        cur = AppState.login('admin', 'admin123') || { id: 'user_admin', username: 'admin', role: 'admin' };
+    }
+    adminUser = cur;
+
+    loadAll();
+
+    // Jump to specific tab if hash in URL
+    const hash = window.location.hash;
+    if (hash) {
+        const targetId = hash.replace('#', '');
+        switchTab(targetId.includes('Tab') ? targetId : targetId + 'Tab');
+    }
+
+    // Cloud sync event listeners
+    window.addEventListener('blockchainUpdated', loadAll);
+    window.addEventListener('usersUpdated', loadAll);
+    window.addEventListener('candidatesUpdated', loadAll);
+
+    // Refresh on tab switch
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(el => {
+        el.addEventListener('shown.bs.tab', loadAll);
+    });
+
+    // Add Candidate form submit
+    document.getElementById('addCandidateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('candidateName').value.trim();
+        const categoryInput = document.getElementById('candidateCategory');
+        const select = document.getElementById('candidateCategorySelect');
+        const category = (categoryInput && categoryInput.value.trim() && categoryInput.value !== '__ADD_NEW__')
+            ? categoryInput.value.trim()
+            : (select && select.value && select.value !== '__ADD_NEW__' ? select.value : 'General');
+        const party = document.getElementById('candidateParty').value.trim() || 'Independent';
+        const desc = document.getElementById('candidateDescription').value.trim();
+        const urlInput = document.getElementById('candidateImageUrl');
+        const image = currentCandidateImage || (urlInput ? urlInput.value.trim() : '');
+
+        if (!name) {
+            showAlert('candidateAlertBox', '<i class="fas fa-exclamation-triangle me-2"></i>Candidate name is required.', 'danger');
+            return;
+        }
+
+        const result = AppState.addCandidate(name, party, desc, category, image);
+        if (result.success) {
+            showAlert('candidateAlertBox', `<i class="fas fa-check-circle me-2"></i><strong>${name}</strong> added to <strong>${category}</strong> — block mined!`, 'success');
+            showToast(`Candidate "${name}" added to ${category}!`, 'success');
+            this.reset();
+            clearCandidateImage();
+            toggleNewCategoryBox(false);
+            loadCategorySuggestions();
+            loadAll();
+        } else {
+            showAlert('candidateAlertBox', '<i class="fas fa-exclamation-triangle me-2"></i>' + result.message, 'danger');
+            showToast(result.message, 'danger');
+        }
+    });
+});
+
+// ---- loadAll ----
+function loadAll() {
+    loadStats();
+    loadVoters();
+    loadCategorySuggestions();
+    loadCandidates();
+    loadBlockchain();
+    loadSettings();
+}
+
+// ---- loadStats ----
+function loadStats() {
+    const candidates = AppState.getCandidates();
+    const users = AppState.getAllUsers();
+    const stats = AppState.getBlockchainStats();
+    const totalVotes = stats.totalVotes;
+
+    const el = id => document.getElementById(id);
+    if (el('statVoters'))     el('statVoters').textContent     = users.length;
+    if (el('statVotes'))      el('statVotes').textContent      = totalVotes;
+    if (el('statCandidates')) el('statCandidates').textContent = candidates.length;
+    if (el('statBlocks'))     el('statBlocks').textContent     = stats.totalBlocks;
+
+    const badge = document.getElementById('chainValidBadge');
+    if (badge) {
+        badge.className = 'validity-badge ' + (stats.isValid ? 'valid' : 'invalid');
+        badge.innerHTML = stats.isValid
+            ? '<i class="fas fa-shield-alt me-1"></i>Chain Valid'
+            : '<i class="fas fa-exclamation-triangle me-1"></i>Chain Invalid';
+    }
+}
+
+// ---- loadVoters ----
+function loadVoters() {
+    const users = AppState.getAllUsers();
+    const tbody = document.getElementById('votersTableBody');
+    if (!tbody) return;
+    const badge = document.getElementById('voterCountBadge');
+    if (badge) badge.textContent = users.length;
+
+    if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No voters registered yet.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = users.map(u => `
+        <tr>
+            <td><strong>${u.username}</strong></td>
+            <td class="text-muted small">${u.email || '—'}</td>
+            <td class="text-muted small" style="font-family:monospace;font-size:0.75rem;">${u.walletAddress ? u.walletAddress.substring(0,20)+'...' : '<span class="text-warning">No wallet</span>'}</td>
+            <td>${u.isRegisteredOnChain ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>'}</td>
+            <td>${u.hasVoted ? '<span class="badge bg-primary">Voted</span>' : '<span class="badge bg-light text-dark">Not yet</span>'}</td>
+            <td class="text-muted small">${u.registeredAt ? new Date(u.registeredAt).toLocaleDateString() : '—'}</td>
+        </tr>
+    `).join('');
+}
+
+function setCandidateCategory(cat) {
+    const hidden = document.getElementById('candidateCategory');
+    const select = document.getElementById('candidateCategorySelect');
+    if (hidden) hidden.value = cat;
+    if (select) select.value = cat;
+    toggleNewCategoryBox(false);
+
+    // Update active state of quick pick badges
+    const badges = document.querySelectorAll('#categoryQuickBadges button');
+    badges.forEach(b => {
+        if (b.getAttribute('data-cat') === cat) {
+            b.classList.add('btn-primary');
+            b.classList.remove('btn-outline-secondary');
+        } else {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-outline-secondary');
+        }
+    });
+}
+
+function handleCategorySelectChange(val) {
+    if (val === '__ADD_NEW__') {
+        toggleNewCategoryBox(true);
+        setTimeout(() => {
+            const input = document.getElementById('newCategoryInput');
+            if (input) input.focus();
+        }, 100);
+    } else {
+        const hidden = document.getElementById('candidateCategory');
+        if (hidden) hidden.value = val;
+        toggleNewCategoryBox(false);
+        setCandidateCategory(val);
+    }
+}
+
+function toggleNewCategoryBox(show) {
+    const box = document.getElementById('newCategoryInlineBox');
+    if (!box) return;
+    box.style.display = show ? 'block' : 'none';
+    if (show) {
+        const input = document.getElementById('newCategoryInput');
+        if (input) input.focus();
+    }
+}
+
+function saveNewCategory() {
+    const input = document.getElementById('newCategoryInput');
+    const val = input ? input.value.trim() : '';
+    if (!val) {
+        alert('Please enter a category name (e.g. Mayor, SRC President, Secretary General, Treasurer).');
+        return;
+    }
+    const res = AppState.addCategory(val);
+    if (res.success) {
+        showToast(`Category "${res.category}" ready!`, 'success');
+        if (input) input.value = '';
+        toggleNewCategoryBox(false);
+        loadCategorySuggestions(res.category);
+        setCandidateCategory(res.category);
+        loadCandidates();
+    } else {
+        alert(res.message);
+    }
+}
+
+function saveNewCategoryFromModal() {
+    const input = document.getElementById('modalCategoryInput');
+    const val = input ? input.value.trim() : '';
+    if (!val) {
+        alert('Please enter a category name.');
+        return;
+    }
+    const res = AppState.addCategory(val);
+    if (res.success) {
+        showToast(`Category "${res.category}" added!`, 'success');
+        if (input) input.value = '';
+        loadCategorySuggestions(res.category);
+        renderModalCategoryList();
+        loadCandidates();
+    } else {
+        alert(res.message);
+    }
+}
+
+function handleDeleteCategory(catName) {
+    if (confirm(`Are you sure you want to delete category "${catName}"?`)) {
+        const res = AppState.deleteCategory(catName);
+        if (res.success) {
+            showToast(`Category "${catName}" deleted.`);
+            loadCategorySuggestions();
+            renderModalCategoryList();
+            loadCandidates();
+        } else {
+            alert(res.message);
+        }
+    }
+}
+
+function renderModalCategoryList() {
+    const container = document.getElementById('modalCategoryList');
+    if (!container) return;
+    const categories = AppState.getCategories();
+    const allCandidates = AppState.getCandidates();
+
+    if (!categories.length) {
+        container.innerHTML = '<div class="p-3 text-center text-muted small">No categories configured yet.</div>';
+        return;
+    }
+
+    container.innerHTML = categories.map(cat => {
+        const count = allCandidates.filter(c => (c.category || 'General') === cat).length;
+        const canDelete = count === 0;
+        return `
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                <div>
+                    <strong>${cat}</strong>
+                    <span class="badge ${count > 0 ? 'bg-primary' : 'bg-light text-muted'} ms-2 rounded-pill">
+                        ${count} candidate${count === 1 ? '' : 's'}
+                    </span>
+                </div>
+                <div>
+                    ${canDelete ? `
+                        <button class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="handleDeleteCategory('${cat}')" title="Delete empty category">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                    ` : `
+                        <small class="text-muted" style="font-size:0.75rem;"><i class="fas fa-lock me-1"></i>In use</small>
+                    `}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function handleImageFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Please select an image file (PNG, JPG, etc.)');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        // Compress/resize image with canvas to keep size compact
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxDim = 120;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+                if (width > maxDim) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                }
+            } else {
+                if (height > maxDim) {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            currentCandidateImage = canvas.toDataURL('image/jpeg', 0.75);
+
+            document.getElementById('candidateImagePreview').src = currentCandidateImage;
+            document.getElementById('imagePreviewBox').style.display = 'block';
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleImageUrlInput(url) {
+    if (url && url.startsWith('http')) {
+        currentCandidateImage = url;
+        document.getElementById('candidateImagePreview').src = url;
+        document.getElementById('imagePreviewBox').style.display = 'block';
+    }
+}
+
+function clearCandidateImage() {
+    currentCandidateImage = '';
+    const fileInput = document.getElementById('candidateImageFile');
+    if (fileInput) fileInput.value = '';
+    const urlInput = document.getElementById('candidateImageUrl');
+    if (urlInput) urlInput.value = '';
+    const previewBox = document.getElementById('imagePreviewBox');
+    if (previewBox) previewBox.style.display = 'none';
+}
+
+function handleDeleteCandidate(id) {
+    const candidate = AppState.getCandidates().find(c => c.id === id);
+    if (!candidate) return;
+    if (confirm(`Are you sure you want to delete candidate "${candidate.name}" (${candidate.category || 'General'})?`)) {
+        AppState.deleteCandidate(id);
+        showToast(`Candidate ${candidate.name} deleted.`);
+        loadAll();
+    }
+}
+
+function loadCategorySuggestions(selectedCat = null) {
+    const categories = AppState.getCategories();
+    const select = document.getElementById('candidateCategorySelect');
+    const hidden = document.getElementById('candidateCategory');
+
+    let currentVal = selectedCat || (hidden ? hidden.value : '') || categories[0] || 'President';
+
+    if (select) {
+        select.innerHTML = `
+            ${categories.map(cat => `<option value="${cat}" ${cat === currentVal ? 'selected' : ''}>${cat}</option>`).join('')}
+            <option value="__ADD_NEW__" class="fw-bold text-primary">➕ + Add New Category...</option>
+        `;
+    }
+    if (hidden) hidden.value = currentVal;
+
+    // Quick pick badges
+    const badges = document.getElementById('categoryQuickBadges');
+    if (badges) {
+        badges.innerHTML = `
+            <small class="text-muted me-1">Quick pick:</small>
+            ${categories.map(cat => `
+                <button type="button" data-cat="${cat}" class="btn ${cat === currentVal ? 'btn-primary' : 'btn-outline-secondary'} btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="setCandidateCategory('${cat}')">
+                    ${cat}
+                </button>
+            `).join('')}
+            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.75rem;" onclick="toggleNewCategoryBox(true)" title="Type a new category">
+                <i class="fas fa-plus me-1"></i>New
+            </button>
+        `;
+    }
+
+    // Update count summary
+    const summary = document.getElementById('categoryCountSummary');
+    if (summary) {
+        summary.textContent = `${categories.length} categories configured`;
+    }
+
+    renderModalCategoryList();
+}
+
+function filterCandidatesByCategory(cat) {
+    selectedCategoryFilter = cat;
+    loadCandidates();
+}
+
+function loadCandidates() {
+    const allCandidates = AppState.getCandidates();
+    const categories = AppState.getCategories();
+    const results = AppState.getResults();
+
+    // Render category filter pills
+    const filterGroup = document.getElementById('candidateCategoryFilterGroup');
+    if (filterGroup) {
+        filterGroup.innerHTML = `
+            <button class="btn btn-outline-primary ${selectedCategoryFilter === 'All' ? 'active' : ''}" onclick="filterCandidatesByCategory('All')">All (${allCandidates.length})</button>
+            ${categories.map(cat => `
+                <button class="btn btn-outline-primary ${selectedCategoryFilter === cat ? 'active' : ''}" onclick="filterCandidatesByCategory('${cat}')">
+                    ${cat} (${allCandidates.filter(c => (c.category || 'General') === cat).length})
+                </button>
+            `).join('')}
+        `;
+    }
+
+    const filteredCandidates = selectedCategoryFilter === 'All'
+        ? allCandidates
+        : allCandidates.filter(c => (c.category || 'General') === selectedCategoryFilter);
+
+    const container = document.getElementById('candidatesList');
+    if (!filteredCandidates.length) {
+        container.innerHTML = '<div class="alert alert-light text-center py-4 text-muted">No candidates found in this category.</div>';
+        return;
+    }
+
+    // Group filtered candidates by category
+    const grouped = {};
+    filteredCandidates.forEach(c => {
+        const cat = c.category || 'General';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(c);
+    });
+
+    let html = '';
+    for (const [category, list] of Object.entries(grouped)) {
+        html += `
+            <div class="category-header-banner mt-3">
+                <div class="fw-bold text-dark">
+                    <i class="fas fa-layer-group me-2 text-primary"></i>${category}
+                </div>
+                <span class="badge bg-primary rounded-pill">${list.length} Candidate${list.length > 1 ? 's' : ''}</span>
+            </div>
+            <div class="row g-2 mb-3">
+        `;
+
+        list.forEach(c => {
+            const r = results.find(r => r.candidate.id === c.id);
+            const votes = r ? r.votes : 0;
+            const pct = r ? r.percentage : '0.0';
+
+            const photoHtml = c.image
+                ? `<img src="${c.image}" class="candidate-photo-sm" alt="${c.name}">`
+                : `<div style="width:44px;height:44px;border-radius:50%;background:${c.color};display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;font-size:1.1rem;"><i class="fas ${c.icon}"></i></div>`;
+
+            html += `
+                <div class="col-12">
+                    <div class="d-flex align-items-center gap-3 p-3 border rounded bg-white shadow-sm">
+                        ${photoHtml}
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <strong class="fs-6">${c.name}</strong>
+                                <span class="category-badge">${c.category || 'General'}</span>
+                                <span class="party-badge" style="background:${c.color}15;color:${c.color};border:1px solid ${c.color}44;">
+                                    ${c.party || 'Independent'}
+                                </span>
+                            </div>
+                            ${c.description ? `<div class="text-muted small mt-1 text-truncate" style="max-width:350px;">${c.description}</div>` : ''}
+                            <div class="progress mt-2" style="height:6px;">
+                                <div class="progress-bar" style="width:${pct}%;background:${c.color};"></div>
+                            </div>
+                        </div>
+                        <div class="text-end ps-2" style="min-width:70px;">
+                            <div class="fw-bold fs-5 text-dark">${votes}</div>
+                            <small class="text-muted">${pct}%</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-danger btn-sm p-1 px-2" title="Delete candidate" onclick="handleDeleteCandidate('${c.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+    container.innerHTML = html;
+}
+
+function loadBlockchain() {
+    const blocks = AppState.getAllBlocks();
+    document.getElementById('explorerBadge').textContent = blocks.length + ' blocks';
+    document.getElementById('adminChainExplorer').innerHTML = blocks.map(block => `
+        <div class="block-card ${block.index === 0 ? 'genesis' : ''} mb-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-1">
+                <span class="block-index">Block #${block.index}</span>
+                <span class="block-type type-${getBlockTypeClass(block.data.type)}">${block.data.type.replace(/_/g,' ')}</span>
+                <small class="text-muted">${new Date(block.timestamp).toLocaleString()}</small>
+                <span class="nonce-display">nonce: ${block.nonce}</span>
+            </div>
+            <div class="mb-1">
+                <span style="color:#8b949e">Hash: </span>
+                <span class="block-hash">${block.hash}</span>
+            </div>
+            <div class="mb-1">
+                <span style="color:#8b949e">PrevHash: </span>
+                <span class="block-prev-hash">${block.previousHash}</span>
+            </div>
+            <div class="mt-1">
+                <span style="color:#8b949e">Data: </span>
+                <span style="color:#e6c07b">${JSON.stringify(block.data.payload).substring(0,120)}${JSON.stringify(block.data.payload).length > 120 ? '...' : ''}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function loadSettings() {
+    const election = AppState.getElection();
+    const stats = AppState.getBlockchainStats();
+    document.getElementById('electionSettings').innerHTML = `
+        <h6 class="fw-bold">${election.title}</h6>
+        <p class="text-muted small">${election.description}</p>
+        <div class="d-flex align-items-center gap-3 mt-3">
+            <span class="badge px-3 py-2 ${election.active ? 'bg-success' : 'bg-secondary'}">
+                ${election.active ? 'ACTIVE' : 'INACTIVE'}
+            </span>
+            <button class="btn btn-sm ${election.active ? 'btn-outline-danger' : 'btn-outline-success'}"
+                onclick="toggleElection()">
+                <i class="fas fa-${election.active ? 'pause' : 'play'} me-1"></i>
+                ${election.active ? 'Pause Election' : 'Start Election'}
+            </button>
+        </div>
+    `;
+    document.getElementById('sysInfo').innerHTML = `
+        <div class="mb-2"><strong>Difficulty:</strong> ${stats.difficulty} (hash starts with ${'0'.repeat(stats.difficulty)})</div>
+        <div class="mb-2"><strong>Total Blocks:</strong> ${stats.totalBlocks}</div>
+        <div class="mb-2"><strong>Chain Valid:</strong> <span class="${stats.isValid ? 'text-success' : 'text-danger'} fw-bold">${stats.isValid ? '✓ Yes' : '✗ No'}</span></div>
+        <div class="mb-2"><strong>Algorithm:</strong> SHA-256 Proof-of-Work</div>
+        <div class="mb-2"><strong>Storage:</strong> ${typeof FirebaseSync !== 'undefined' && FirebaseSync.isInitialized ? 'Firebase Cloud + localStorage' : 'localStorage (browser)'}</div>
+        <div class="mb-0"><strong>Admin:</strong> ${adminUser.username}</div>
+    `;
+
+    // Populate Firebase config fields if available
+    if (typeof FirebaseSync !== 'undefined') {
+        const cfg = FirebaseSync.getConfig();
+        if (cfg) {
+            if (document.getElementById('fbDbUrl')) document.getElementById('fbDbUrl').value = cfg.databaseURL || '';
+            if (document.getElementById('fbProjectId')) document.getElementById('fbProjectId').value = cfg.projectId || '';
+            if (document.getElementById('fbApiKey')) document.getElementById('fbApiKey').value = cfg.apiKey || '';
+            if (document.getElementById('fbAuthDomain')) document.getElementById('fbAuthDomain').value = cfg.authDomain || '';
+        }
+    }
+}
+
+function saveCloudConfig() {
+    const databaseURL = document.getElementById('fbDbUrl').value.trim();
+    const projectId = document.getElementById('fbProjectId').value.trim();
+    const apiKey = document.getElementById('fbApiKey').value.trim();
+    const authDomain = document.getElementById('fbAuthDomain').value.trim();
+
+    if (!databaseURL && !projectId) {
+        showToast('Please enter at least a Firebase Realtime Database URL or Project ID.', 'danger');
+        return;
+    }
+
+    const config = {
+        databaseURL,
+        projectId,
+        apiKey: apiKey || '',
+        authDomain: authDomain || (projectId ? `${projectId}.firebaseapp.com` : '')
+    };
+
+    FirebaseSync.saveConfig(config);
+    showToast('Firebase configuration saved! Connecting to cloud...', 'success');
+    setTimeout(() => {
+        window.location.reload();
+    }, 1200);
+}
+
+function clearCloudConfig() {
+    if (confirm('Disconnect from Firebase and switch back to Local Browser Storage?')) {
+        FirebaseSync.saveConfig(null);
+        showToast('Disconnected from cloud. Switched to local mode.', 'warning');
+        setTimeout(() => {
+            window.location.reload();
+        }, 1200);
+    }
+}
+
+function toggleElection() {
+    const election = AppState.getElection();
+    AppState.setElectionStatus(!election.active);
+    loadSettings();
+    loadAll();
+    showToast('Election status updated!');
+}
+
+function downloadChain() {
+    const data = AppState.exportChain();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'blockchain-export-' + Date.now() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function confirmReset() {
+    if (confirm('⚠️ WARNING: This will permanently delete ALL voters, votes, and the entire blockchain. Are you absolutely sure?')) {
+        if (confirm('Last chance. This CANNOT be undone. Reset everything?')) {
+            AppState.resetAll();
+            showToast('All data has been reset. Reloading...', 'warning');
+            setTimeout(() => window.location.reload(), 1500);
+        }
+    }
+}
+
+function getBlockTypeClass(type) {
+    const map = { 'VOTE': 'vote', 'GENESIS': 'genesis', 'REGISTER_VOTER': 'register', 'ADD_CANDIDATE': 'candidate' };
+    return map[type] || 'genesis';
+}
+
+function handleLogout() {
+    AppState.logout();
+    window.location.href = 'index.html';
+}
+
+function showToast(msg, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `position-fixed bottom-0 end-0 m-3 alert alert-${type} alert-dismissible fade show`;
+    toast.style.zIndex = '9999';
+    toast.innerHTML = msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+</body>
+</html>
