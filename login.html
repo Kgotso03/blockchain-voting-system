@@ -56,11 +56,30 @@
 <script src="js/blockchain.js"></script>
 <script src="js/app.js"></script>
 <script>
-// Redirect if already logged in
+// Redirect if already logged in; show error messages from redirect params
 document.addEventListener('DOMContentLoaded', () => {
     const user = AppState.getCurrentUser();
     if (user) {
         window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+        return;
+    }
+
+    // Show contextual alerts based on URL params
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    const redirect = params.get('redirect');
+
+    if (error === 'admin_required') {
+        showAlert('alertBox', '<i class="fas fa-lock me-2"></i><strong>Admin access required.</strong> Please sign in with your admin credentials to continue.', 'warning');
+    } else if (error === 'session_expired') {
+        showAlert('alertBox', '<i class="fas fa-clock me-2"></i>Your session has expired. Please sign in again.', 'info');
+    } else if (error === 'login_required') {
+        showAlert('alertBox', '<i class="fas fa-sign-in-alt me-2"></i>Please sign in to access that page.', 'info');
+    }
+
+    // Pre-fill redirect destination so login goes back to intended page
+    if (redirect) {
+        document.getElementById('loginForm').dataset.redirect = redirect;
     }
 });
 
@@ -82,7 +101,14 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 
             showAlert('alertBox', '<i class="fas fa-check-circle me-2"></i>Welcome back, <strong>' + user.username + '</strong>! Redirecting...', 'success');
             setTimeout(() => {
-                window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+                // Respect redirect param (e.g. admin page), fallback to role-based default
+                const form = document.getElementById('loginForm');
+                const redirectTo = form.dataset.redirect;
+                if (redirectTo) {
+                    window.location.href = redirectTo + '.html';
+                } else {
+                    window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+                }
             }, 1000);
         } else {
             showAlert('alertBox', '<i class="fas fa-exclamation-triangle me-2"></i>Invalid credentials. Please try again.', 'danger');

@@ -356,16 +356,14 @@ const AppState = {
     },
 
     addCandidate(name, party, description, category, image) {
-        let user = this.getCurrentUser();
-        let isAdmin = user && (
+        const user = this.getCurrentUser();
+        const isAdmin = user && (
             (user.role && user.role.toLowerCase() === 'admin') ||
             user.is_admin === true ||
             user.username === 'admin'
         );
         if (!isAdmin) {
-            // Auto-login default admin so admin operations are never blocked
-            user = this.login('admin', 'admin123') || { id: 'user_admin', username: 'admin', role: 'admin' };
-            isAdmin = true;
+            return { success: false, message: 'Unauthorized. Admin credentials required.' };
         }
         if (!name || !name.trim()) {
             return { success: false, message: 'Candidate name is required.' };
@@ -413,15 +411,14 @@ const AppState = {
     },
 
     deleteCandidate(candidateId) {
-        let user = this.getCurrentUser();
-        let isAdmin = user && (
+        const user = this.getCurrentUser();
+        const isAdmin = user && (
             (user.role && user.role.toLowerCase() === 'admin') ||
             user.is_admin === true ||
             user.username === 'admin'
         );
         if (!isAdmin) {
-            user = this.login('admin', 'admin123') || { id: 'user_admin', username: 'admin', role: 'admin' };
-            isAdmin = true;
+            return { success: false, message: 'Unauthorized. Admin credentials required.' };
         }
         const idx = this._candidates.findIndex(c => c.id === candidateId);
         if (idx === -1) {
