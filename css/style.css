@@ -817,3 +817,363 @@ footer a:hover {
 
 /* Nonce display */
 .nonce-display { color: #fbbf24; font-weight: 700; }
+
+/* ============================================================
+   MOBILE-FIRST RESPONSIVE DESIGN
+   Breakpoints: xs <576 | sm 576+ | md 768+ | lg 992+ | xl 1200+
+   ============================================================ */
+
+/* ---- Touch-friendly base ---- */
+* { -webkit-tap-highlight-color: transparent; }
+
+a, button, [role="button"] {
+    touch-action: manipulation;
+}
+
+/* Minimum 44×44 px tap target for all interactive elements */
+.btn, .nav-link, .quick-action-btn {
+    min-height: 44px;
+}
+
+/* ---- Navbar Mobile ---- */
+@media (max-width: 991.98px) {
+    .navbar {
+        padding: 0.6rem 1rem;
+    }
+
+    .navbar-collapse {
+        background: #0f172a;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding: 0.75rem 0;
+        margin-top: 0.5rem;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 0.65rem 1rem !important;
+        border-radius: 8px;
+        margin: 0.1rem 0.5rem;
+    }
+
+    .navbar-nav .btn {
+        margin: 0.5rem 1rem;
+        width: calc(100% - 2rem);
+    }
+}
+
+/* ---- Hero Section Mobile ---- */
+@media (max-width: 767.98px) {
+    .hero {
+        padding: 2.5rem 1rem 2rem;
+    }
+
+    .hero h1 {
+        font-size: 1.9rem;
+        letter-spacing: -0.02em;
+    }
+
+    .hero .lead {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero .d-flex.gap-3 {
+        gap: 0.75rem !important;
+    }
+
+    .hero .btn-lg {
+        padding: 0.7rem 1.5rem;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    .hero .d-flex.justify-content-center {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* ---- Typography Scaling ---- */
+@media (max-width: 575.98px) {
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.45rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.1rem; }
+
+    .section-title { font-size: 1.45rem; }
+
+    .stat-value { font-size: 1.9rem; }
+}
+
+/* ---- Auth Card Mobile ---- */
+@media (max-width: 575.98px) {
+    .auth-wrapper {
+        padding: 1rem 0.75rem;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+
+    .auth-card {
+        padding: 1.75rem 1.25rem;
+        border-radius: 16px;
+    }
+
+    .auth-logo i { font-size: 2.25rem; }
+    .auth-logo h4 { font-size: 1.35rem; }
+}
+
+/* ---- Feature Cards Mobile ---- */
+@media (max-width: 767.98px) {
+    .feature-card {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .feature-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.4rem;
+    }
+}
+
+/* ---- Step Cards Mobile ---- */
+@media (max-width: 575.98px) {
+    .step-card {
+        padding: 1.25rem 1rem;
+    }
+}
+
+/* ---- Stat Cards Mobile ---- */
+@media (max-width: 575.98px) {
+    .stat-card {
+        padding: 1rem 0.75rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+}
+
+/* ---- Block Cards Mobile ---- */
+@media (max-width: 575.98px) {
+    .block-card {
+        font-size: 0.78rem;
+        padding: 0.9rem 1rem;
+    }
+
+    .block-hash, .block-prev-hash {
+        font-size: 0.72rem;
+    }
+}
+
+/* ---- Candidate Cards Mobile ---- */
+@media (max-width: 767.98px) {
+    .candidate-card {
+        padding: 1.1rem 1rem;
+    }
+
+    .candidate-photo {
+        width: 80px;
+        height: 80px;
+    }
+
+    .candidate-name {
+        font-size: 1.05rem;
+    }
+}
+
+/* Full-width candidate cards on small phones */
+@media (max-width: 575.98px) {
+    .candidate-card {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .candidate-card .candidate-photo {
+        width: 64px;
+        height: 64px;
+        flex-shrink: 0;
+        margin: 0;
+    }
+
+    .candidate-card::after {
+        display: block;
+        margin-top: 0.4rem;
+    }
+
+    .candidate-card .candidate-name { font-size: 1rem; margin-top: 0; }
+}
+
+/* ---- Category Header Banner Mobile ---- */
+@media (max-width: 575.98px) {
+    .category-header-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* ---- Tables: Horizontal Scroll on Mobile ---- */
+@media (max-width: 767.98px) {
+    .table-responsive-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--border-radius);
+    }
+
+    .table thead th {
+        white-space: nowrap;
+        font-size: 0.82rem;
+        padding: 0.75rem 0.85rem;
+    }
+
+    .table td {
+        font-size: 0.88rem;
+        padding: 0.75rem 0.85rem;
+    }
+}
+
+/* ---- Admin Panel Mobile ---- */
+@media (max-width: 767.98px) {
+    /* Stack admin tabs vertically */
+    .nav-tabs .nav-link {
+        font-size: 0.82rem;
+        padding: 0.5rem 0.6rem !important;
+        min-height: 40px;
+    }
+
+    /* Mining box full width */
+    .mining-box {
+        padding: 1.75rem 1.5rem;
+    }
+}
+
+/* ---- Sidebar → Bottom Stack on Mobile ---- */
+@media (max-width: 991.98px) {
+    .sidebar-card {
+        margin-bottom: 1rem;
+    }
+
+    .user-avatar {
+        width: 52px;
+        height: 52px;
+        font-size: 1.3rem;
+    }
+}
+
+/* ---- Vote Button Mobile ---- */
+@media (max-width: 575.98px) {
+    .btn-vote {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        width: 100%;
+    }
+}
+
+/* ---- Wallet Address Mobile ---- */
+@media (max-width: 575.98px) {
+    .wallet-address {
+        font-size: 0.72rem;
+        word-break: break-all;
+    }
+}
+
+/* ---- Footer Mobile ---- */
+@media (max-width: 575.98px) {
+    footer {
+        padding: 1.75rem 1rem;
+        margin-top: 3rem;
+        font-size: 0.88rem;
+    }
+}
+
+/* ---- Card Body Padding Reduction on Small Screens ---- */
+@media (max-width: 575.98px) {
+    .card-body {
+        padding: 1rem;
+    }
+
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* ---- Modals Full-Screen on Mobile ---- */
+@media (max-width: 575.98px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+}
+
+/* ---- Quick action buttons: stack on mobile ---- */
+@media (max-width: 575.98px) {
+    .quick-action-btn {
+        font-size: 0.88rem;
+        padding: 0.65rem 0.9rem;
+    }
+}
+
+/* ---- Chain Explorer: Constrain Height on Mobile ---- */
+@media (max-width: 767.98px) {
+    .chain-explorer {
+        max-height: 400px;
+    }
+}
+
+/* ---- Utility: Hide verbose text on tiny screens ---- */
+@media (max-width: 399.98px) {
+    .hide-xs { display: none !important; }
+}
+
+/* ---- Smooth Scroll for all anchor links ---- */
+html { scroll-behavior: smooth; }
+
+/* ---- Prevent horizontal overflow on all pages ---- */
+body { overflow-x: hidden; }
+.container, .container-fluid { overflow-x: hidden; }
+
+
+/* ---- Chart.js canvas: always fits container ---- */
+canvas {
+    max-width: 100% !important;
+}
+
+/* ---- Admin panel tab content padding ---- */
+@media (max-width: 575.98px) {
+    .tab-content > .tab-pane,
+    .admin-tab-content {
+        padding: 1rem !important;
+    }
+}
+
+/* ---- Admin candidate form: stack columns on mobile ---- */
+@media (max-width: 767.98px) {
+    .admin-form-row {
+        flex-direction: column;
+    }
+}
+
+/* ---- Prevent badge and pill overflow ---- */
+.badge, .hero-badge, .cloud-sync-badge, .validity-badge {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* ---- Bottom safe area for iPhone X+ notches ---- */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+    footer {
+        padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));
+    }
+    .navbar {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+}
