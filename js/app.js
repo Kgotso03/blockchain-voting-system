@@ -190,6 +190,9 @@ const AppState = {
         if (typeof FirebaseSync !== 'undefined') {
             FirebaseSync.pushUsers(this._users);
         }
+        if (typeof updateRegisteredUsersCount === 'function') {
+            updateRegisteredUsersCount();
+        }
     },
     _saveCandidates() {
         try {
@@ -563,6 +566,14 @@ const AppState = {
         }));
     },
 
+    getRegisteredUsersCount() {
+        const userVoters = (this._users || []).filter(u => u.role !== 'admin');
+        const chainRegs = (this._blockchain && this._blockchain.chain)
+            ? this._blockchain.chain.filter(b => b.data && b.data.type === 'REGISTER_VOTER').length
+            : 0;
+        return Math.max(userVoters.length, chainRegs);
+    },
+
     exportChain() {
         return this._blockchain.exportChain();
     },
@@ -641,7 +652,23 @@ function requireAdmin(redirectTo = 'login.html') {
     return user;
 }
 
+// Footer Registered Users Count Utility
+function updateRegisteredUsersCount() {
+    if (typeof AppState === 'undefined' || typeof AppState.getRegisteredUsersCount !== 'function') return;
+    const count = AppState.getRegisteredUsersCount();
+    const els = document.querySelectorAll('#footerRegisteredUsers, #footerUserCount, .footer-registered-users-count');
+    els.forEach(el => {
+        el.textContent = count;
+    });
+}
+
 // Initialize on every page load
 document.addEventListener('DOMContentLoaded', () => {
     AppState.init();
+    updateRegisteredUsersCount();
 });
+
+// Real-time synchronization listeners
+window.addEventListener('usersUpdated', updateRegisteredUsersCount);
+window.addEventListener('blockchainUpdated', updateRegisteredUsersCount);
+setInterval(updateRegisteredUsersCount, 4000);
